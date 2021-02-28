@@ -1,12 +1,9 @@
 package org.craftedsw.kirin.tdd;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class MoleculeReaderTest {
 
@@ -59,6 +56,26 @@ class MoleculeReaderTest {
                 .containsEntry("H", 5)
                 .containsEntry("Mg", 1);
     }
+
+    @Test
+    void unique_nested_atom_should_return_decomposition() {
+        Molecule molecule = parser.parse("[H]FeMg");
+        assertThat(molecule.getAtoms())
+                .containsEntry("H", 1)
+                .containsEntry("Fe", 1)
+                .containsEntry("Mg", 1);
+
+    }
+    @Test
+    void nested_atom_with_multiplier_should_return_decomposition() {
+        Molecule molecule = parser.parse("[HO]2Mg");
+        assertThat(molecule.getAtoms())
+                .containsEntry("H", 2)
+                .containsEntry("O", 2)
+                .containsEntry("Mg", 1);
+
+    }
+
 
 
 }
