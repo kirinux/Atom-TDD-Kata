@@ -76,6 +76,43 @@ class MoleculeReaderTest {
 
     }
 
+    @Test
+    void multiple_nested_atom_should_return_decomposition() {
+        Molecule molecule = parser.parse("[HCl]2O[H]Na3Fe");
+        assertThat(molecule.getAtoms())
+                .containsEntry("H", 3)
+                .containsEntry("O", 1)
+                .containsEntry("Cl", 2)
+                .containsEntry("Na", 3)
+                .containsEntry("Fe", 1)
+                ;
+
+    }
+
+    @Test
+    void nested_atom_with_same_delimiter_should_return_decomposition() {
+        Molecule molecule = parser.parse("K4[ON[SO3]2]2");
+        assertThat(molecule.getAtoms())
+                .containsEntry("K", 4)
+                .containsEntry("O", 14)
+                .containsEntry("N", 2)
+                .containsEntry("S", 4)
+        ;
+
+    }
+
+    @Test
+    void nested_atom_with_different_delimiter_should_return_decomposition() {
+        Molecule molecule = parser.parse("K4[ON(SO3)2]2");
+        assertThat(molecule.getAtoms())
+                .containsEntry("K", 4)
+                .containsEntry("O", 14)
+                .containsEntry("N", 2)
+                .containsEntry("S", 4)
+        ;
+
+    }
+
 
 
 }

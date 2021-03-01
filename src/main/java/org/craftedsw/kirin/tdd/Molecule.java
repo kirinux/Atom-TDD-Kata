@@ -27,8 +27,22 @@ public class Molecule {
                 ));
     }
 
+    public Molecule multiply(int multiplier) {
+        LOGGER.info("multiply x{}", multiplier);
+        for (Map.Entry<String, Integer> entry : atoms.entrySet()) {
+            atoms.put(entry.getKey(), entry.getValue() * multiplier);
+        }
+        return this;
+    }
+
     public Map<String, Integer> getAtoms() {
         return Collections.unmodifiableMap(atoms);
+    }
+
+    public String toAtomicString() {
+        StringBuilder builder = new StringBuilder();
+        atoms.forEach((s, integer) -> builder.append(s).append(integer));
+        return builder.toString();
     }
 
     public void addAtom(String atom, int multiplier) {
