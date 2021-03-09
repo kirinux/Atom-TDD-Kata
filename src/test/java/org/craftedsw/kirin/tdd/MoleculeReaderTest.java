@@ -1,5 +1,6 @@
 package org.craftedsw.kirin.tdd;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -103,13 +104,23 @@ class MoleculeReaderTest {
 
     @Test
     void nested_atom_with_different_delimiter_should_return_decomposition() {
-        Molecule molecule = parser.parse("K4[ON(SO3)2]2");
+        Molecule molecule = parser.parse("K9{ON(SO3)2}4");
         assertThat(molecule.getAtoms())
-                .containsEntry("K", 4)
-                .containsEntry("O", 14)
-                .containsEntry("N", 2)
-                .containsEntry("S", 4)
-        ;
+                .containsEntry("K", 9)
+                .containsEntry("O", 28)
+                .containsEntry("N", 4)
+                .containsEntry("S", 8);
+    }
+
+    @Test
+    void plop() {
+        Molecule molecule = parser.parse("{[Co(NH3)4(OH)2]3Co}(SO4)3");
+        assertThat(molecule.getAtoms())
+                .containsEntry("Co", 4)
+                .containsEntry("N", 12)
+                .containsEntry("H", 42)
+                .containsEntry("O", 18)
+                .containsEntry("S", 3);
 
     }
 

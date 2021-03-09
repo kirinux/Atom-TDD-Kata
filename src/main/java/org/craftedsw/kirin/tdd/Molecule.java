@@ -17,21 +17,19 @@ public class Molecule {
 
     private Map<String, Integer> atoms = new HashMap<>();
 
-    public void addMolecule(Molecule molecule) {
+    public void addSubMolecule(Molecule molecule) {
         LOGGER.info("add nested molecule {}", molecule);
         this.atoms = Stream.concat(atoms.entrySet().stream(), molecule.getAtoms().entrySet().stream())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
-                        (integer, integer2) -> integer + integer2
+                        Integer::sum
                 ));
     }
 
     public Molecule multiply(int multiplier) {
         LOGGER.info("multiply x{}", multiplier);
-        for (Map.Entry<String, Integer> entry : atoms.entrySet()) {
-            atoms.put(entry.getKey(), entry.getValue() * multiplier);
-        }
+        atoms.replaceAll((s, integer) -> integer * multiplier);
         return this;
     }
 

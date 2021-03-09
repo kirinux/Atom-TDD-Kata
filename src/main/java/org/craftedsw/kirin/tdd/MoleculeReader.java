@@ -29,49 +29,58 @@ public class MoleculeReader {
             return new Molecule();
         }
 
-        Matcher matcher = PATTERN.matcher(formula);
+        String normalizedFormula = formula.replaceAll("[({]", "[").replaceAll("[)}]", "]");
+        Matcher matcher = PATTERN.matcher(normalizedFormula);
         Molecule molecule = new Molecule();
         while (matcher.find()) {
             if (isOpen(matcher)) {
                 LOGGER.debug("Start nested formula");
-                StringBuilder nestedBuilder = new StringBuilder();
-                stack.push(nestedBuilder);
+                startNewSubMolecule();
             } else if (isClose(matcher)) {
                 LOGGER.debug("End nested formula");
                 int multiplier = extractAtomMultiplier(matcher);
-                String nestedFormula = stack.pop().toString();
-
+                String nestedFormula = endCurrentSubMolecule();
                 Molecule nestedMolecule = new MoleculeReader().parse(nestedFormula).multiply(multiplier);
-                if (stack.peek() != null) {
-                    StringBuilder pop = stack.pop();
-                    pop.append(nestedMolecule.toAtomicString());
-                    stack.push(pop);
+                if (!hasCurrentSubMolecule()) {
+                    concatSubMolecule(nestedMolecule);
                 } else {
-                    molecule.addMolecule(nestedMolecule);
+                    molecule.addSubMolecule(nestedMolecule);
                 }
 
-            } else if (isCollectingNested(matcher)) {
+            } else if (isCollectingNested()) {
                 String atom = extractAtomSymbol(matcher, SYMBOL_GROUP_REGEX_NAME);
                 int count = extractAtomMultiplier(matcher);
                 StringBuilder nestedBuilder = stack.peek();
                 nestedBuilder.append(atom).append(count);
-                LOGGER.debug("Nested expression captured: {}", nestedBuilder.toString());
+                LOGGER.debug("Nested expression captured: {}", nestedBuilder);
             } else {
                 String atom = extractAtomSymbol(matcher, SYMBOL_GROUP_REGEX_NAME);
                 int count = extractAtomMultiplier(matcher);
                 molecule.addAtom(atom, count);
             }
-
-//                if (isNestedFormula(matcher)) {
-//                    String nestedFormula = extractAtomSymbol(matcher, NESTED_GROUP_REGEX_NAME);
-//                    int multiplier = extractAtomMultiplier(matcher);
-//                    Molecule nestedMolecule = parse(nestedFormula).multiply(multiplier);
-//                    molecule.addMolecule(nestedMolecule);
-//                }
         }
 
         LOGGER.debug("molecule: {}", molecule);
         return molecule;
+    }
+
+    private void concatSubMolecule(Molecule nestedMolecule) {
+        StringBuilder pop = stack.pop();
+        pop.append(nestedMolecule.toAtomicString());
+        stack.push(pop);
+    }
+
+    private boolean hasCurrentSubMolecule() {
+        return stack.isEmpty();
+    }
+
+    private String endCurrentSubMolecule() {
+        return stack.pop().toString();
+    }
+
+    private void startNewSubMolecule() {
+        StringBuilder nestedBuilder = new StringBuilder();
+        stack.push(nestedBuilder);
     }
 
     private int extractAtomMultiplier(Matcher matcher) {
@@ -79,20 +88,14 @@ public class MoleculeReader {
     }
 
     private boolean isOpen(Matcher matcher) {
-        if (isNull(matcher.group(OPEN_NESTED_GROUP_REGEX_NAME))) {
-            return false;
-        }
-        return true;
+        return !isNull(matcher.group(OPEN_NESTED_GROUP_REGEX_NAME));
     }
 
     private boolean isClose(Matcher matcher) {
-        if (isNull(matcher.group(CLOSE_NESTED_GROUP_REGEX_NAME))) {
-            return false;
-        }
-        return true;
+        return !isNull(matcher.group(CLOSE_NESTED_GROUP_REGEX_NAME));
     }
 
-    private boolean isCollectingNested(Matcher matcher) {
+    private boolean isCollectingNested() {
         return !stack.isEmpty();
     }
 
@@ -104,9 +107,6 @@ public class MoleculeReader {
 
     private boolean isGroupNullOrEmpty(Matcher matcher, String name) {
         String group = matcher.group(name);
-        if (isNull(group) || group.isEmpty()) {
-            return true;
-        }
-        return false;
+        return isNull(group) || group.isEmpty();
     }
 }
